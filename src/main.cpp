@@ -2,6 +2,23 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <AccelStepper.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
+
+//Configurar WiFi
+const char* ssid = "iPhone";
+const char* password = "Sebas1234";
+
+//Configurar Broker MQTT (IP de la rapsberry Pi)
+const char* mqtt_server = "172.20.10.2"; //IP local de la rapsberry Pi
+const int mqtt_port = 1883; //Puerto mqtt sin TLS
+const char* topic1 = "smartfishtank/237592164/temperature";
+const char* topic2 = "smartfishtank/237592164/caudal";
+const char* topic3 = "smartfishtank/237592164/turbidez";
+
+//Clientes WiFi y MQTT
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 // Macro y libería para el sensor de temperatura
 #define ONE_WIRE_BUS 4 //Pin de conexión sensor de temperatura
@@ -13,6 +30,7 @@ float promTemperatura = 0.0;   // promedio calculado cada minuto
 
 // Macro para el sensor de turbidez
 #define TURBIDITY_SENSOR_PIN 13 //Pin de conexión sensor de turbidez
+int turbidez = 0;
 
 // Macros de actualización para el sensor de flujo
 #define FLOW_SENSOR_PIN 21  //Pin de conexión sensor de flujo
@@ -48,6 +66,7 @@ TaskHandle_t TaskTempHandle = NULL;
 TaskHandle_t TaskTurbidezHandle = NULL;
 TaskHandle_t TaskCaudalHandle = NULL;
 TaskHandle_t TaskStepperHandle = NULL;
+TaskHandle_t TaskComunicationHandle = NULL;
 
 // ISR de flujo
 void IRAM_ATTR flowPulseISR() {
@@ -100,6 +119,7 @@ void TaskTurbidez(void * parameter) {
     Serial.print(raw);
     Serial.print(" Voltaje sensor: ");
     Serial.println(voltage, 2);
+    turbidez = raw;
     RTOS_delay(2000);
   }
 }
@@ -211,15 +231,75 @@ void TaskStepper(void * parameter) {
   }
 }
 
+//Configuración de la conexión WiFi
+void setup_wifi() {
+  delay(10);
+  Serial.println("Conectando a Wi-Fi...");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWi-Fi conectado");
+  Serial.println("IP: ");
+  Serial.println(WiFi.localIP());
+}
+
+//Reconección a WiFi si se perdió la conexión.
+void reconnect() {
+    while (!client.connected()) {
+      Serial.print("Conectando a MQTT...");
+    if (client.connect("ESP32Client")) {
+      Serial.println("Conectado al broker");
+    } else {
+      Serial.print("Fallo: ");
+      Serial.print(client.state());
+      delay(5000);
+    }
+    }
+}
+
+// Task: Comunicación MQTT
+//Utilizamos objeto creado para utilizar la librería.
+void TaskComunication(void * parameter) {
+  setup_wifi();
+  client.setServer(mqtt_server, mqtt_port);
+
+  for (;;) {
+    if (!client.connected()) reconnect();
+    client.loop();
+    char tempStr[10];
+    dtostrf(promTemperatura, 4, 2, tempStr);
+    client.publish(topic1, tempStr);
+    Serial.print("Temperatura enviada: ");
+    Serial.println(tempStr);
+    char caudStr[10];
+    dtostrf(MinCaudal, 4, 2, caudStr);
+    client.publish(topic2, caudStr);
+    Serial.print("Caudal enviado: ");
+    Serial.println(caudStr);
+    char turbStr[10];
+    dtostrf(turbidez, 4, 2, turbStr);
+    client.publish(topic3, turbStr);
+    Serial.print("Turbidez enviada: ");
+    Serial.println(turbStr);
+
+    RTOS_delay(60000);
+  }  
+}
+
 void setup() {
   pinMode(FLOW_SENSOR_PIN, INPUT_PULLUP);
   Serial.begin(115200);
-  
-  //Vamos a resrvar el nucleo 2 para la comunicación.
+
+  //Ejecución de tareas de Hardware en el nucleo 2.
   xTaskCreatePinnedToCore(TaskTemperatura, "TaskTemp", 4096, NULL, 1, &TaskTempHandle, 1);
-xTaskCreatePinnedToCore(TaskTurbidez, "TaskTurb", 4096, NULL, 1, &TaskTurbidezHandle, 1);
+  xTaskCreatePinnedToCore(TaskTurbidez, "TaskTurb", 4096, NULL, 1, &TaskTurbidezHandle, 1);
   xTaskCreatePinnedToCore(TaskCaudal, "TaskCaudal", 4096, NULL, 1, &TaskCaudalHandle, 1);
   xTaskCreatePinnedToCore(TaskStepper, "TaskStepper", 4096, NULL, 1, &TaskStepperHandle, 1);
+
+  //Ejecución de la comunicación en el nucleo 1.
+  xTaskCreatePinnedToCore(TaskComunication, "TaskComunication", 4096, NULL, 1, &TaskComunicationHandle, 0);
 }
 
 void loop() {
