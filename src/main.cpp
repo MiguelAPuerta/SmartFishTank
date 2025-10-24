@@ -4,21 +4,52 @@
 #include <AccelStepper.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <WiFiClientSecure.h>
+#include "time.h" // Para sincronizar hora NTP (Network Time Protocol)
+
+// Certificado CA en formato cadena
+const char* ca_cert = \
+"-----BEGIN CERTIFICATE-----\n" \
+"MIID9zCCAt+gAwIBAgIUMUftpGqBKQK8tAHGTB0uql62jIEwDQYJKoZIhvcNAQEL\n" \
+"BQAwgYoxCzAJBgNVBAYTAkNPMRIwEAYDVQQIDAlBbnRpb3F1aWExETAPBgNVBAcM\n" \
+"CE1lZGVsbGluMQ0wCwYDVQQKDARVZGVBMQwwCgYDVQQLDANJb1QxDjAMBgNVBAMM\n" \
+"BWtldmluMScwJQYJKoZIhvcNAQkBFhhrZXZpbi5sb3BlemdAdWRlYS5lZHUuY28w\n" \
+"HhcNMjUxMDEwMTYzMDA5WhcNMjYxMDEwMTYzMDA5WjCBijELMAkGA1UEBhMCQ08x\n" \
+"EjAQBgNVBAgMCUFudGlvcXVpYTERMA8GA1UEBwwITWVkZWxsaW4xDTALBgNVBAoM\n" \
+"BFVkZUExDDAKBgNVBAsMA0lvVDEOMAwGA1UEAwwFa2V2aW4xJzAlBgkqhkiG9w0B\n" \
+"CQEWGGtldmluLmxvcGV6Z0B1ZGVhLmVkdS5jbzCCASIwDQYJKoZIhvcNAQEBBQAD\n" \
+"ggEPADCCAQoCggEBAK+n1X5pa+uWtt8Mf11GCDjdDG/VGfJUMFynIuuuOZeWkb6Y\n" \
+"pQFrVG4eUsFcbN8CN5uXV5hcojoEx6KpRrO42TF2a9wYeGBlkJVj9+mVGFgPQZth\n" \
+"6kypCfQOLBwKjsNugIGIiFZhuIVEywMQvZ+XotbpZa+IvIKPCzqvFMCDI6LRr4yR\n" \
+"e6CqnAhSyFEhOcacAmadgACMcD1SdBaQkUCcuG8Tftym8D/PAPGrEevC/RuWwI7c\n" \
+"tTuhUY8RC8Qmrzm8g3S5YpELo1RGN4fiyRalgnRTjnY+3hpTLJhzJ5NVB4NqJ8Yv\n" \
+"2IhrzrLaWeLtrTwirp9B6gbjZUbhgA9+yk+syU0CAwEAAaNTMFEwHQYDVR0OBBYE\n" \
+"FAnJhR4xGrCGn5yVM2lPZv6d3XnhMB8GA1UdIwQYMBaAFAnJhR4xGrCGn5yVM2lP\n" \
+"Zv6d3XnhMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAF/0xLKN\n" \
+"5jAPZ30/Cyj8Y9o+mVjNiP/VyJFlpqYyeLtVR4WYCKSdMRyLU/w0RstKz6dIwGoe\n" \
+"j5JZCcpkY7zzTi/Um0Zg/1NfiVkKZVqmFp0ya6T93A42Q/O17VyfLURphJvVmvcj\n" \
+"YTC0n5mIpm4XfJIfx8Qz4c1j3WwN+OmgEJ3JoO7OMbDrLjszSSEZIiCOsyFhDmfS\n" \
+"Q/XuETEPzYzDOFZXXNNGm5F+AbLONU+N3uvol/3LjVS7Cd5/Nl5P0aFXT7kJ1aii\n" \
+"BnrlwjlNKE1yLMYTtCTg5oqkpmLD5lcLNzYJd+bnLUXHOssmESEvl8M6h5ev8xNx\n" \
+"9f4xyB4ew1bh6iw=\n" \
+"-----END CERTIFICATE-----\n";
 
 //Configurar WiFi
 const char* ssid = "iPhone";
 const char* password = "Sebas1234";
 
 //Configurar Broker MQTT (IP de la rapsberry Pi)
-const char* mqtt_server = "172.20.10.2"; //IP local de la rapsberry Pi
-const int mqtt_port = 1883; //Puerto mqtt sin TLS
+const char* mqtt_server = "kelogi.local"; //IP local de la rapsberry Pi
+const int mqtt_port = 8883; //Puerto mqtt con TLS
+//const int mqtt_port = 1883; //Puerto mqtt sin TLS
 const char* topic1 = "smartfishtank/237592164/temperature";
 const char* topic2 = "smartfishtank/237592164/caudal";
 const char* topic3 = "smartfishtank/237592164/turbidez";
 
 //Clientes WiFi y MQTT
-WiFiClient espClient;
-PubSubClient client(espClient);
+WiFiClientSecure wifiClient;
+//WiFiClient wifiClient;
+PubSubClient client(wifiClient);
 
 // Macro y libería para el sensor de temperatura
 #define ONE_WIRE_BUS 4 //Pin de conexión sensor de temperatura
@@ -102,9 +133,9 @@ void TaskTemperatura(void * parameter) {
       sendTemp = true;
     }
 
-    Serial.print("Valor de temperatura en el Agua: ");
+    /*Serial.print("Valor de temperatura en el Agua: ");
     Serial.print(t);
-    Serial.println(" °C");
+    Serial.println(" °C");*/
     RTOS_delay(2000);
   }
 }
@@ -115,10 +146,10 @@ void TaskTurbidez(void * parameter) {
   for (;;) {
     int raw = analogRead(TURBIDITY_SENSOR_PIN);
     float voltage = raw * (3.3 / 4095.0);
-    Serial.print("Valor de turbidez en ADC: ");
+    /*Serial.print("Valor de turbidez en ADC: ");
     Serial.print(raw);
     Serial.print(" Voltaje sensor: ");
-    Serial.println(voltage, 2);
+    Serial.println(voltage, 2);*/
     turbidez = raw;
     RTOS_delay(2000);
   }
@@ -165,11 +196,11 @@ void TaskCaudal(void * parameter) {
         MinCaudal = flowRate;
       }
 
-      Serial.print("Valor de pulsos en 1s: ");
+      /*Serial.print("Valor de pulsos en 1s: ");
       Serial.print(pulses);
       Serial.print(" Flujo estimado: ");
       Serial.print(flowRate, 2);
-      Serial.println(" L/min");
+      Serial.println(" L/min");*/
       // Reactivamos la interrupción para seguir contando.
       attachInterrupt(digitalPinToInterrupt(FLOW_SENSOR_PIN), flowPulseISR, FALLING);
     }
@@ -247,23 +278,52 @@ void setup_wifi() {
 
 //Reconección a WiFi si se perdió la conexión.
 void reconnect() {
+    Serial.print("vamos a reconectar");
     while (!client.connected()) {
-      Serial.print("Conectando a MQTT...");
-    if (client.connect("ESP32Client")) {
-      Serial.println("Conectado al broker");
-    } else {
-      Serial.print("Fallo: ");
-      Serial.print(client.state());
-      delay(5000);
-    }
+        Serial.print("Conectando a MQTT...");
+        if (client.connect("ESP32Client")) {
+          Serial.println("Conectado al broker");
+        } else {
+        Serial.print("Fallo, rc=");
+        Serial.print(client.state());
+        delay(5000);
+      }
     }
 }
+
+void syncTime(){
+  //Sincronizar hora para TLS
+  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+  Serial.print("Esperando sincronización NTP");
+  time_t now = time(nullptr);
+  while (now < 8 * 3600 * 2) {
+    delay(500);
+    Serial.print(".");
+    now = time(nullptr);
+  }
+
+  Serial.println("\nHora sincronizada");
+}
+
+void TLS() {
+  //Configurar certificado CA
+  wifiClient.setCACert(ca_cert);
+  //Verificar conexión TLS directa
+  Serial.print("Probando conexión TLS directa...");
+  wifiClient.connect(mqtt_server, mqtt_port);
+  if (wifiClient.connect(mqtt_server, mqtt_port)) {
+    Serial.println("Conexión TLS abierta correctamente.");
+    wifiClient.stop(); // cerrarla antes de usar PubSubClient
+  } 
+  else {
+    Serial.println("Fallo al abrir conexión TLS (wifiClient.connect).");
+  }
+}
+
 
 // Task: Comunicación MQTT
 //Utilizamos objeto creado para utilizar la librería.
 void TaskComunication(void * parameter) {
-  setup_wifi();
-  client.setServer(mqtt_server, mqtt_port);
 
   for (;;) {
     if (!client.connected()) reconnect();
@@ -292,14 +352,20 @@ void setup() {
   pinMode(FLOW_SENSOR_PIN, INPUT_PULLUP);
   Serial.begin(115200);
 
+  setup_wifi();
+  syncTime();   
+  TLS(); //Se abre la conexión con TLS, se prueba y se cierra nuevamente.
+  client.setServer(mqtt_server, mqtt_port);
+  reconnect();
+
   //Ejecución de tareas de Hardware en el nucleo 2.
-  xTaskCreatePinnedToCore(TaskTemperatura, "TaskTemp", 4096, NULL, 1, &TaskTempHandle, 1);
-  xTaskCreatePinnedToCore(TaskTurbidez, "TaskTurb", 4096, NULL, 1, &TaskTurbidezHandle, 1);
-  xTaskCreatePinnedToCore(TaskCaudal, "TaskCaudal", 4096, NULL, 1, &TaskCaudalHandle, 1);
-  xTaskCreatePinnedToCore(TaskStepper, "TaskStepper", 4096, NULL, 1, &TaskStepperHandle, 1);
+  xTaskCreatePinnedToCore(TaskTemperatura, "TaskTemp", 4096, NULL, 1, &TaskTempHandle, 0);
+  xTaskCreatePinnedToCore(TaskTurbidez, "TaskTurb", 4096, NULL, 1, &TaskTurbidezHandle, 0);
+  xTaskCreatePinnedToCore(TaskCaudal, "TaskCaudal", 4096, NULL, 1, &TaskCaudalHandle, 0);
+  xTaskCreatePinnedToCore(TaskStepper, "TaskStepper", 4096, NULL, 1, &TaskStepperHandle, 0);
 
   //Ejecución de la comunicación en el nucleo 1.
-  xTaskCreatePinnedToCore(TaskComunication, "TaskComunication", 4096, NULL, 1, &TaskComunicationHandle, 0);
+  xTaskCreatePinnedToCore(TaskComunication, "TaskComunication", 8192, NULL, 1, &TaskComunicationHandle, 1);
 }
 
 void loop() {
