@@ -34,6 +34,62 @@ const char* ca_cert = \
 "9f4xyB4ew1bh6iw=\n" \
 "-----END CERTIFICATE-----\n";
 
+const char* client_cert = \
+"-----BEGIN CERTIFICATE-----\n" \
+"MIID8jCCAtqgAwIBAgIUfNYDV/0JVenf94KhyjmoTmINT2IwDQYJKoZIhvcNAQEL\n" \
+"BQAwgYoxCzAJBgNVBAYTAkNPMRIwEAYDVQQIDAlBbnRpb3F1aWExETAPBgNVBAcM\n" \
+"CE1lZGVsbGluMQ0wCwYDVQQKDARVZGVBMQwwCgYDVQQLDANJb1QxDjAMBgNVBAMM\n" \
+"BWtldmluMScwJQYJKoZIhvcNAQkBFhhrZXZpbi5sb3BlemdAdWRlYS5lZHUuY28w\n" \
+"HhcNMjUxMDEwMjIzOTI5WhcNMjYxMDEwMjIzOTI5WjCBljELMAkGA1UEBhMCQ08x\n" \
+"EjAQBgNVBAgMCUFudGlvcXVpYTERMA8GA1UEBwwITWVkZWxsaW4xDTALBgNVBAoM\n" \
+"BFVkZUExDDAKBgNVBAsMA0lvVDEZMBcGA1UEAwwQU21hcnRGaXNoLUNsaWVudDEo\n" \
+"MCYGCSqGSIb3DQEJARYZbWlndWVsLnB1ZXJ0YUB1ZGVhLmVkdS5jbzCCASIwDQYJ\n" \
+"KoZIhvcNAQEBBQADggEPADCCAQoCggEBALcETb9kLIrCtzdpoxbTIcd/lKa6r142\n" \
+"uQluGweotINeZNjI6Xk/QsAj2aXu36MKnS6ZbyvrwZl2ZOtPpy+5e7pORzubLfJf\n" \
+"xMrKYY2ZNO7kdgWwMl5QQsvx/A+7MWRQMtOKx0zgDH830MSwWWjrpDEDYV738WbL\n" \
+"WfJWB5dPez+R7E493xpgqSkpueCfA1Tm0CKpy9JNfEbGxd3lWqAZmsGCLmS01LJ2\n" \
+"KSsEKLngaYc0vrb8dBIdZsQ3RDkln1DLPomuI0Lw2ownWmiJyP2kPcWp3iwKSiJ6\n" \
+"FnpmU4hOXT5VGrabh2GruDr0yEnLvIFBnArvXvOGiqXZRLK3YKuJvRECAwEAAaNC\n" \
+"MEAwHQYDVR0OBBYEFPEax8LyaobA8j3eT6r6pNxGdrjCMB8GA1UdIwQYMBaAFAnJ\n" \
+"hR4xGrCGn5yVM2lPZv6d3XnhMA0GCSqGSIb3DQEBCwUAA4IBAQCQtwjhfWW/ZA2r\n" \
+"FSl95s5SnwdvNVhnuLbVDD7gznIjaLoXNPe5meMbGGgA6qVO9RM7scXKU26vbAwz\n" \
+"6KXrg35qFo6fxBw+bYBI8mX0liWTQ/tgPm6I8pCmpKZMtoxyb9UsafHKGt1AiaXA\n" \
+"VVs7MPLk6XCmxfcuJcANLCDc28vdOn0LNuyLVX5SVbXTkHL6EgUM1AdDp46IfBR3\n" \
+"2WlwK5VeMawaF+aUnv4lygrGynthEk5D+yzE9WBZpmNf6kq3umzi969U2M+sW8qW\n" \
+"dtlexOlgf8nnrMKDhg6LFypfryZkFJbJx9a09MHeNDr4Lb+4rCxUQTiWQpqpbt+m\n" \
+"hzUu5AED\n" \
+"-----END CERTIFICATE-----\n";
+
+const char* client_key = \
+"-----BEGIN PRIVATE KEY-----\n"
+"MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC3BE2/ZCyKwrc3\n"
+"aaMW0yHHf5Smuq9eNrkJbhsHqLSDXmTYyOl5P0LAI9ml7t+jCp0umW8r68GZdmTr\n"
+"T6cvuXu6Tkc7my3yX8TKymGNmTTu5HYFsDJeUELL8fwPuzFkUDLTisdM4Ax/N9DE\n"
+"sFlo66QxA2Fe9/Fmy1nyVgeXT3s/kexOPd8aYKkpKbngnwNU5tAiqcvSTXxGxsXd\n"
+"5VqgGZrBgi5ktNSydikrBCi54GmHNL62/HQSHWbEN0Q5JZ9Qyz6JriNC8NqMJ1po\n"
+"icj9pD3Fqd4sCkoiehZ6ZlOITl0+VRq2m4dhq7g69MhJy7yBQZwK717zhoql2USy\n"
+"t2Crib0RAgMBAAECggEABevxOg6bNFgthnD4Em59as+Rdz2WHAXIQepanIpUYOXG\n"
+"fI8vorktxzrBuZE7kjJvOIlFZBXqOzVt+YEnxy8ItlP/EQop1+xKWUdoFaVN5abl\n"
+"vLRhRNTy/FdVkQq9A+JmaprUbQPY06ryKdMM6YyqUN2rol+CY5GT1Pf8oeQz+DAJ\n"
+"7259drkW6iGi39eX/S0o/qnxyNbCo857yOEO2+JHsm4PzsvBBdD0uRkscCqOWvKi\n"
+"stDVUIC+6RfbOZSYqvm9C99tLRWHkN4KrKGyMH1qgLqT5QV2Y2tws4RV32c4lzbE\n"
+"h9jSMg25TCEsXaW/e5cbMzbpSa2m1C0eb/m93J0vMwKBgQDw4/snefmJRfiFTKR+\n"
+"TZMmDel1Sy3vum9vL6pB3PbrNFI7OP2P7wFsfBLXDxPJGMUNaC0av7yo6s/fJV9I\n"
+"JkDv8lQG5l5tM0o9NsqD0ln6oIRO7Oizu6QnZY9xSNigiJBZmtQeL1Sfe5QcDf16\n"
+"3IQzb1zD45bh5Ldz2T2V2Tyj7wKBgQDCfwjXePqyHuKcpYxRJOMBkYd7b5OCVrlM\n"
+"A00tSu+MZRMwNw6D5RSxz7t4gACoN7+YgSYipw9h74ZiERR7EtQwVftlKIOevJIT\n"
+"4KJ/o3XYZ9aW9gx4qCtVSAXcD+HomhQ5GLfkeSfpI4YJwfqq/ycwrDgudUsMUGFN\n"
+"2aKeDKqu/wKBgQCVs5ipd8vz22AOtwqi02LXC15CXm41xQ7rchvEwqVQljtkQo6R\n"
+"nF6uJI0wyVXqa1JKeqtNLEr6TrLQYlFMbTl95IMDpraX9n/0etBwC5GPh6Gxytjy\n"
+"mXHyadMy+6pkWXobtXSNLazRT+NDbA5TBCfELzjfI9jomVLI1ADJ1y8wUQKBgGUW\n"
+"//J2h96ynNgMV40JXg+/oypuCL5S8wZmJOPose9HzZxe0WWOWJ4+uVLdPPox15yd\n"
+"a8PRDva5NyCbfgil9bGVzw956kdD/azlMbCjtimfdvKJuluwFK3DvH/vpVxvURmI\n"
+"FnRi4HKVqyJBN1dPPQBYUu8aucIRuTFsb9A0BzbjAoGBALxQT4O2bTI+XzdrNnTC\n"
+"XdgL9oh0L5fDD3KU7EdosUZT0p1boV6/OsxH76fywIK49uNrZS2OM+M2LnFiPd/d\n"
+"zSEuMCOfNmmI5tVM3ho2IMTzXYazECVRm0zgC2JA4D+IDEq36iLo7SPFDeG7VBH1\n"
+"g2LWglzKZ4f/y14byNDqCKvO\n"
+"-----END PRIVATE KEY-----\n";
+
 //Configurar WiFi
 const char* ssid = "iPhone";
 const char* password = "Sebas1234";
@@ -308,6 +364,8 @@ void syncTime(){
 void TLS() {
   //Configurar certificado CA
   wifiClient.setCACert(ca_cert);
+  wifiClient.setCertificate(client_cert);
+  wifiClient.setPrivateKey(client_key);
   //Verificar conexión TLS directa
   Serial.print("Probando conexión TLS directa...");
   wifiClient.connect(mqtt_server, mqtt_port);
